@@ -1,9 +1,7 @@
 #' almond_function
 #'
 #' Computes almond temp anomalies given January precipitation avg and February minimum temperature avgs 
-#' @param tmin_feb dataframe of February minimum temperature averages 
-#' @param precip_jan dataframe of January precipitation averages 
-#' @param yr dataframe of years 
+#' @param almond_df dataframe of almond min and max temperatures and precipitation over time #' @param precip_jan dataframe of January precipitation averages 
 #' @param graph TRUE/FALSE  graph results default=TRUE
 
 

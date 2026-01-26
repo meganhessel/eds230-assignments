@@ -1,0 +1,183 @@
+---
+title: "almond_profit_model"
+format: html
+---
+
+```{r}
+library(ggplot2)
+```
+
+# Discussion class
+
+-   *Revenue - cost = profit* [simple profit model: revenue = profit]
+
+-   Crop Yield * price = Revenue 
+
+-  costs = fixed cost + variable cost 
+
+```{r}
+# PRICE DF 
+years <- c(1995:2023)
+price_lb <- c(2.48, 2.08, 1.56, 1.41, 0.86, 0.97, 0.91, 1.11, 1.57, 2.21, 2.81, 2.06, 1.75, 1.45, 1.65, 1.79, 1.99, 2.58, 3.21, 4.00, 3.13, 2.39, 2.53, 2.50, 2.45, 1.71, 1.86, 1.40, 1.40)
+price_lb_df <- data.frame(year = years, 
+                          price_lb = price_lb)
+price_lb_df
+
+# look at it via ggplot 
+ggplot(price_lb_df, aes( x = year, y = price_lb)) + 
+  geom_point() + 
+  geom_line() + 
+  labs(y = "Almond Price per lb", 
+       title = "Almond Price per lb Overtime") + 
+  geom_smooth()
+
+
+# predicting 1988 price 
+lm_model <- lm(price_lb ~ year, 
+   data = price_lb_df)
+
+lm_summary <- summary(lm_model)
+
+beta0 <- coef(lm_summary)[1]
+beta1 <-coef(lm_summary)[2]
+
+#price_equation = beta0 + beta1*(t)
+
+beta0 + beta1*(1988)
+beta0 + beta1*(1989)
+beta0 + beta1*(1990)
+beta0 + beta1*(1991)
+beta0 + beta1*(1992)
+beta0 + beta1*(1993)
+beta0 + beta1*(1994)
+
+# Add predictions to dataframe 
+missing_years <- data.frame(year = 1988:1994)  
+
+missing_years$price_lb <- predict(lm_model, newdata = missing_years) 
+
+price_lb_df <- rbind(missing_years, price_lb_df)
+
+
+price_lb_df %>% 
+  filter(year >= 1988 & year <= 2010)
+  #almond$price_lb <- price_lb_df_subset$price_lb
+  
+```
+
+
+```{r}
+# looking at almond years 1988 to 2010
+almonds %>% 
+  group_by(year) %>% 
+  summarise(across(everything(), mean, na.rm = TRUE))
+
+```
+
+$$ 
+C_t = \frac{C_{2024}}{(1 + r)^{2024 - t}}
+$$ 
+
+```{r}
+# Cost 
+cost_function <- function(t) {
+  1569 / (1 + 0.09)^(2024-t)
+}
+
+cost_function(t = 2010)
+cost_function(t = 1988)
+
+cost_output <- cost_function(t = price_lb_df$year)
+cost_output
+```
+
+```{r}
+source(here::here("assignment3","R", "almond_profit_fun.R"))
+```
+
+
+```{r}
+
+almond_subset <- almonds %>% 
+  group_by(month, year) %>% 
+  summarize(tmin = mean(tmin_c, na.rm = TRUE), 
+            tmax = mean(tmax_c, na.rm = TRUE), 
+            precip = sum(precip,  na.rm = TRUE)) %>% 
+  ungroup()
+
+
+almond_profit_fun(almond_df = almond_subset)
+
+```
+
+```{r}
+# Trying function little by little 
+  # Pulling out just Feb tmin 
+tmin_feb <- almond_subset %>% 
+    filter(month == 2) %>% 
+    select(tmin)
+  
+  # Pullung out just January precipitation 
+  precip_jan <- almond_subset %>% 
+    filter(month == 1) %>% 
+    select(precip)
+  
+  # Creating df of years 
+  year <- almond_subset %>% 
+    filter(month == 1) %>% 
+    select(year)
+
+  #...........................YIELD ANOMALY.........................
+  # Equation for Almond YIELD 
+  Y = -0.015 * (tmin_feb) - 0.0046 * (tmin_feb)^2 - 0.07 * (precip_jan) + 0.0043 * (precip_jan)^2 + 0.28
+  
+  
+  # Create a dataframe of year and ANOMALY
+  almond <- data.frame(year = year, 
+               yield_anomaly = Y)
+  
+  # Change column names (`data.frame` function was not changing the colnames)
+  colnames(almond) <- c("year", "yield_anomaly")
+  
+  #..............................PRICE............................. 
+    # Dataframe of 2024 California Almond Objective Measurement Report
+   price_lb_df <- data.frame(year = c(1995:2023), 
+                             price_lb = c(2.48, 2.08, 1.56, 1.41, 0.86, 0.97, 0.91, 1.11, 1.57, 2.21, 2.81, 2.06, 1.75, 1.45, 1.65, 1.79, 1.99, 2.58, 3.21, 4.00, 3.13, 2.39, 2.53, 2.50, 2.45, 1.71, 1.86, 1.40, 1.40))
+
+  
+  # Predicting prices of 1988:1994 with above data with an lm_model 
+  lm_model <- lm(price_lb ~ year, 
+                 data = price_lb_df)
+  
+  missing_years <- data.frame(year = 1988:1994) # dataframe of missing year 
+  
+  missing_years$price_lb <- predict(lm_model, newdata = missing_years) # predict price of missing years with `lm_model`
+  
+  price_lb_df <- rbind(missing_years, price_lb_df) # Make one dataframe of prices 
+  price_lb_df$price_ton <- price_lb_df$price_lb * (1/0.005) # Convert price ($/lb) to price ($/ton) 
+  # 1lb = 0.005 tons
+  
+  almond <- left_join(almond, price_lb_df, by= "year") %>% 
+    select(-c("price_lb"))
+  
+
+  #..............................COST............................. 
+  cost_function <- function(t, base_price = 1569, discount_rate = 0.09) {
+    base_price / (1 + discount_rate)^(2024-t) } # base price = 1569 & discount rate 
+  
+  almond$cost_acre <- cost_function(t = almond$year)
+
+  
+    #.............................PROFIT............................
+  # FIND PROFIT 
+  almond$yield = (0.9 + almond$yield_anomaly) # baseline + nomaly = yield (ton /acre)
+  
+  almond$revenue = almond$yield * almond$price_ton # yield (ton /acre) * price ($/ton) = rev ($/acre)
+  
+  almond$profit = almond$revenue - almond$cost_acre # revenue ($/acre) - cost ($/acre) = profit ($/acre)
+
+  almond
+  
+```
+
+

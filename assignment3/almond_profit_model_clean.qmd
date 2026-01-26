@@ -1,0 +1,39 @@
+---
+title: "Almond Profit Model"
+format: html
+---
+
+```{r}
+#| output: false 
+#| warning: false 
+#| echo: false
+library(dplyr)
+library(tidyr)
+```
+
+## Load Data and function 
+```{r}
+almonds <- read.table(here::here("assignment3", "clim.txt"), 
+           header = TRUE)
+
+source(here::here("assignment3","R", "almond_profit_fun.R"))
+```
+
+## Subset almond df 
+For min and max temps and precipitation per year 
+```{r}
+#| warnings: false 
+
+almond_subset <- almonds %>% 
+  group_by(month, year) %>% 
+  summarize(tmin = mean(tmin_c, na.rm = TRUE), 
+            tmax = mean(tmax_c, na.rm = TRUE), 
+            precip = sum(precip,  na.rm = TRUE), 
+            .groups = "drop") 
+```
+
+## Run function 
+```{r}
+almond_profit_fun(almond_df = almond_subset)
+```
+

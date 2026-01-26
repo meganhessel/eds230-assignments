@@ -24,10 +24,10 @@ library(knitr)
 **Load Data**
 
 ```{r}
-almonds <- read.table(here::here("clim.txt"), 
+almonds <- read.table(here::here("assignment3", "clim.txt"), 
            header = TRUE)
 
-source(here::here("almond_function.R"))
+source(here::here("assignment3/R/almond_function.R"))
 
 source(here::here("winegrape_function.R"))
 
@@ -40,6 +40,7 @@ Monthly Averages (per year) *aggregated to state scale / crop area* (idk how to 
 ```{r}
 #| warning: false 
 #| output: false
+
 almond_subset <- almonds %>% 
   group_by(month, year) %>% 
   summarize(tmin = mean(tmin_c, na.rm = TRUE), 
