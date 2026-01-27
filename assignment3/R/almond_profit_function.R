@@ -1,10 +1,11 @@
 #' almond_profit_fun 
 #'
 #' Computes almond temp anomalies given January precipitation avg and February minimum temperature avgs 
-#' @param almond_df dataframe of almond min and max temperatures and precipitation over time  
-#' @param price the default is the average price from the 2024 California Almond Objective Measurement Report or user can input a list of prices in which the function will average 
+#' @param almond_df Dataframe of almond min and max temperatures and precipitation over time  
+#' @param price The default is the average price from the 2024 California Almond Objective Measurement Report or user can input a list of prices in which the function will average 
+#' @param discount_rate The discount rate of almond costs over time. The default is the discount rate from the paper (9%), but could be changed. 
 
-almond_profit_function <- function(almond_df, prices = 398.7586) {
+almond_profit_function <- function(almond_df, prices = 398.7586, discount_rate = 0.09) {
   
   #....................PULL OUT VARAIBLES FOR EQUATION........................
   
@@ -44,12 +45,8 @@ almond_profit_function <- function(almond_df, prices = 398.7586) {
   almond$avg_price_ton <- avg_price_ton 
   
   #................................COST................................... 
-  # Discount Rate function 
-  cost_function <- function(t, base_price = 3807, discount_rate = 0.09) { 
-    base_price / (1 + discount_rate)^(2024-t) } # base price and discount rates from UCAR 2024 paper 
-  
-  
-  almond$cost <- cost_function(t = almond$year) # apply `cost_function` to almond years 
+  base_price <- 3807
+  almond$cost <- base_price / (1 + discount_rate)^(2024 - almond$year) # Discount rate equation
   
   #.............................PROFIT............................
   almond$yield = (0.9 + almond$yield_anomaly) # baseline + nomaly = yield (ton /acre)

@@ -105,50 +105,192 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>almonds <span class="ot">&lt;-</span> <span class="fu">read.table</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"assignment3"</span>, <span class="st">"clim.txt"</span>), </span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">header =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"assignment3"</span>,<span class="st">"R"</span>, <span class="st">"almond_profit_fun.R"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"assignment3"</span>,<span class="st">"R"</span>, <span class="st">"almond_profit_function.R"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
-<section id="subset-almond-df" class="level2">
-<h2 class="anchored" data-anchor-id="subset-almond-df">Subset almond df</h2>
-<p>For min and max temps and precipitation per year</p>
+<section id="prices" class="level2">
+<h2 class="anchored" data-anchor-id="prices">Prices</h2>
+<p>Create a list of almond prices over the years</p>
+<p>From <em>United States Department of Agriculture National Agricultural Statistics Service: 2024 California Almond Objective Measurement Report</em></p>
 <div class="cell" data-warnings="false">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>almond_subset <span class="ot">&lt;-</span> almonds <span class="sc">%&gt;%</span> </span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(month, year) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">tmin =</span> <span class="fu">mean</span>(tmin_c, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), </span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">tmax =</span> <span class="fu">mean</span>(tmax_c, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">precip =</span> <span class="fu">sum</span>(precip,  <span class="at">na.rm =</span> <span class="cn">TRUE</span>), </span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">.groups =</span> <span class="st">"drop"</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">2.48</span>, <span class="fl">2.08</span>, <span class="fl">1.56</span>, <span class="fl">1.41</span>, <span class="fl">0.86</span>, <span class="fl">0.97</span>, <span class="fl">0.91</span>, <span class="fl">1.11</span>, <span class="fl">1.57</span>, <span class="fl">2.21</span>, <span class="fl">2.81</span>, <span class="fl">2.06</span>, <span class="fl">1.75</span>, <span class="fl">1.45</span>, <span class="fl">1.65</span>, <span class="fl">1.79</span>, <span class="fl">1.99</span>, <span class="fl">2.58</span>, <span class="fl">3.21</span>, <span class="fl">4.00</span>, <span class="fl">3.13</span>, <span class="fl">2.39</span>, <span class="fl">2.53</span>, <span class="fl">2.50</span>, <span class="fl">2.45</span>, <span class="fl">1.71</span>, <span class="fl">1.86</span>, <span class="fl">1.40</span>, <span class="fl">1.40</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="run-function" class="level2">
 <h2 class="anchored" data-anchor-id="run-function">Run function</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">almond_profit_fun</span>(<span class="at">almond_df =</span> almond_subset)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">almond_profit_function</span>(<span class="at">almond_df =</span> almonds, <span class="at">prices =</span> p)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>   year yield_anomaly price_ton cost_acre        yield     revenue       profit
-1  1989    -0.3552237  286.7980  76.85914    0.5447763    156.2408     79.38164
-2  1990     9.2906757  292.3961  83.77646   10.1906757   2979.7134   2895.93695
-3  1991    68.9130633  297.9941  91.31634   69.8130633  20803.8802  20712.56383
-4  1992    15.4280698  303.5921  99.53481   16.3280698   4957.0733   4857.53847
-5  1993    20.2083803  309.1901 108.49295   21.1083803   6526.5032   6418.01026
-6  1994     2.4820009  314.7882 118.25731    3.3820009   1064.6139    946.35657
-7  1995  1919.9811511  496.0000 128.90047 1920.8811511 952757.0509 952628.15048
-8  1996     3.5818399  416.0000 140.50151    4.4818399   1864.4454   1723.94388
-9  1997   329.6938750  312.0000 153.14665  330.5938750 103145.2890 102992.14235
-10 1998    27.8636956  282.0000 166.92985   28.7636956   8111.3622   7944.43232
-11 1999    -0.1436364  172.0000 181.95353    0.7563636    130.0945    -51.85900
-12 2000     9.5999883  194.0000 198.32935   10.4999883   2036.9977   1838.66837
-13 2001   159.5119587  182.0000 216.17899  160.4119587  29194.9765  28978.79750
-14 2002     0.2450914  222.0000 235.63510    1.1450914    254.2103     18.57519
-15 2003    -0.2585997  314.0000 256.84226    0.6414003    201.3997    -55.44258
-16 2004    -0.2367722  442.0000 279.95807    0.6632278    293.1467     13.18861
-17 2005   656.3724121  562.0000 305.15429  657.2724121 369387.0956 369081.94132
-18 2006    18.6324135  412.0000 332.61818   19.5324135   8047.3544   7714.73617
-19 2007    20.2007396  350.0000 362.55381   21.1007396   7385.2589   7022.70506
-20 2008   576.2821943  290.0000 395.18366  577.1821943 167382.8363 166987.65269
-21 2009     0.7367438  330.0000 430.75019    1.6367438    540.1255    109.37528
-22 2010   153.7655092  358.0000 469.51770  154.6655092  55370.2523  54900.73458</code></pre>
+<pre><code>   year avg_tmin_c sum_precip yield_anomaly avg_price_ton      cost
+1  1989   8.640417      2.798    -0.3552237      398.7586  186.4900
+2  1990   8.681270     55.812     9.2906757      398.7586  203.2741
+3  1991  10.391468    135.337    68.9130633      398.7586  221.5687
+4  1992  11.908525     69.640    15.4280698      398.7586  241.5099
+5  1993  10.939464     77.903    20.2083803      398.7586  263.2458
+6  1994   9.623710     34.804     2.4820009      398.7586  286.9379
+7  1995  12.586270    676.512  1919.9811511      398.7586  312.7623
+8  1996  12.040460     40.252     3.5818399      398.7586  340.9109
+9  1997   9.988571    285.296   329.6938750      398.7586  371.5929
+10 1998  11.484643     89.762    27.8636956      398.7586  405.0363
+11 1999   8.103690      0.000    -0.1436364      398.7586  441.4895
+12 2000  11.614732     57.318     9.5999883      398.7586  481.2236
+13 2001   8.822143    201.041   159.5119587      398.7586  524.5337
+14 2002   7.719107     20.338     0.2450914      398.7586  571.7418
+15 2003   9.312381      0.000    -0.2585997      398.7586  623.1985
+16 2004   7.889272     14.478    -0.2367722      398.7586  679.2864
+17 2005  10.423869    399.034   656.3724121      398.7586  740.4222
+18 2006   9.374365     74.930    18.6324135      398.7586  807.0602
+19 2007  10.046329     77.724    20.2007396      398.7586  879.6956
+20 2008   9.239175    374.396   576.2821943      398.7586  958.8682
+21 2009   8.556669     24.892     0.7367438      398.7586 1045.1663
+22 2010   9.894963    197.612   153.7655092      398.7586 1139.2313
+          yield     revenue      profit
+1     0.5447763    217.2343     30.7443
+2    10.1906757   4063.6198   3860.3457
+3    69.8130633  27838.5608  27616.9921
+4    16.3280698   6510.9586   6269.4487
+5    21.1083803   8417.1486   8153.9028
+6     3.3820009   1348.6020   1061.6641
+7  1920.8811511 765967.9183 765655.1560
+8     4.4818399   1787.1723   1446.2614
+9   330.5938750 131827.1576 131455.5647
+10   28.7636956  11469.7716  11064.7353
+11    0.7563636    301.6065   -139.8831
+12   10.4999883   4186.9608   3705.7372
+13  160.4119587  63965.6514  63441.1177
+14    1.1450914    456.6151   -115.1267
+15    0.6414003    255.7639   -367.4346
+16    0.6632278    264.4678   -414.8186
+17  657.2724121 262093.0405 261352.6183
+18   19.5324135   7788.7183   6981.6581
+19   21.1007396   8414.1018   7534.4063
+20  577.1821943 230156.3757 229197.5075
+21    1.6367438    652.6657   -392.5006
+22  154.6655092  61674.2051  60534.9738</code></pre>
 </div>
+</div>
+</section>
+<section id="sensitivity-analysis" class="level1">
+<h1>Sensitivity Analysis</h1>
+<ol type="1">
+<li>Varies the temperature and precipitation inputs + price + discount rate</li>
+<li>Runs function for various simulations</li>
+<li>Extracts mean profit</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate parameter samples: tmin, precip, discount rate, and price </span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>nsamples <span class="ot">&lt;-</span> <span class="dv">300</span> <span class="co"># number of samples</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>mean_tmin <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="dv">12</span>, <span class="at">sd =</span> <span class="dv">2</span>, <span class="at">n =</span> nsamples)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>mean_precip <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="dv">1</span>, <span class="at">sd =</span> <span class="fl">0.5</span>, <span class="at">n =</span> nsamples)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>dis_rate <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="fl">0.08</span>, <span class="at">sd =</span> <span class="fl">0.015</span>, <span class="at">n =</span> nsamples)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>price_base <span class="ot">&lt;-</span> <span class="fl">1.50</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>price_sd <span class="ot">&lt;-</span> <span class="fl">0.80</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="at">max =</span> price_base <span class="sc">+</span> price_sd <span class="sc">*</span> price_base, </span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">min =</span> price_base <span class="sc">-</span> price_sd <span class="sc">*</span> price_base, </span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">n =</span> nsamples) </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Put samples together</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>parms <span class="ot">&lt;-</span> <span class="fu">cbind.data.frame</span>(mean_tmin, mean_precip, dis_rate, p)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># RUN THE SIMULATION OVER THE 300 SAMPLES </span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Use pmap with wrapper (because your function needs a dataframe, not scalars like the solar model). </span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co"># `results` is results of 300 different simulations   </span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> parms <span class="sc">%&gt;%</span> </span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pmap</span>(<span class="cf">function</span>(mean_tmin, mean_precip, dis_rate, p) {</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    almond_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">tmin_c =</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> mean_tmin, <span class="at">sd =</span> <span class="dv">3</span>, <span class="at">n =</span> <span class="dv">40</span>),</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">precip =</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> mean_precip, <span class="at">sd =</span> <span class="dv">2</span>, <span class="at">n =</span> <span class="dv">40</span>),</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">month =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">20</span>), <span class="fu">rep</span>(<span class="dv">2</span>, <span class="dv">20</span>)),</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">year =</span> <span class="fu">rep</span>(<span class="dv">1981</span><span class="sc">:</span><span class="dv">2000</span>, <span class="at">times =</span> <span class="dv">2</span>)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">almond_profit_function</span>(almond_df, <span class="at">prices =</span> p, <span class="at">discount_rate =</span> dis_rate)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract mean profit column from each simulation result </span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>mean_profit <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(results, <span class="sc">~</span><span class="fu">mean</span>(.x<span class="sc">$</span>profit, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="co">#mean_profit &lt;- map_df(results, `[`, c("mean"))</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Add parameter values</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>mean_profit <span class="ot">&lt;-</span> <span class="fu">cbind.data.frame</span>(mean_profit, parms)</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(mean_profit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  mean_profit mean_tmin mean_precip   dis_rate         p
+1   -592.8489  13.45948   0.9007771 0.05735710 0.8356465
+2   -276.7906  14.16916   0.9484371 0.08052137 2.0279835
+3   -380.3388  11.37955   1.0528844 0.06833736 0.8003206
+4   -250.0258  11.38050   0.8721128 0.07585540 1.2090900
+5   -178.1990  10.27800   1.0230229 0.07195415 2.5893118
+6   -230.1505  10.56779   1.0619769 0.08640853 0.6348713</code></pre>
+</div>
+</div>
+</section>
+<section id="graphs" class="level1">
+<h1>Graphs</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1) box or violin of mean_profit </span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(mean_profit) <span class="sc">+</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> mean_profit), <span class="at">fill =</span> <span class="st">"#ffad76"</span>) <span class="sc">+</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Mean Profit ($/acre)"</span>, </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Distribution of Almond Profit across various Simulations"</span>) <span class="sc">+</span> </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="almond_profit_model_clean_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2). Parameter SENSITIVITY - profit responds to each parameter</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Temperature sensitivity (and mean_profit)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>plot_tmin <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(mean_profit, <span class="fu">aes</span>(<span class="at">x =</span> mean_tmin, <span class="at">y =</span> mean_profit)) <span class="sc">+</span> </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">col =</span> <span class="st">"sandybrown"</span>, </span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span> </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">col =</span> <span class="st">"firebrick"</span>) <span class="sc">+</span> </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Mean Minimum Temperature (C)"</span>, </span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Mean Almond Profit ($/acre)"</span>, </span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Almond Profit in Reponse to Temperature Variation"</span>) </span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Precipitation sensitivity (and mean_profit)</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>plot_precip <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(mean_profit, <span class="fu">aes</span>(<span class="at">x =</span> mean_precip, <span class="at">y =</span> mean_profit)) <span class="sc">+</span> </span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">col =</span> <span class="st">"skyblue2"</span>, </span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span> </span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">col =</span> <span class="st">"firebrick"</span>) <span class="sc">+</span> </span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Mean Minimum Precipitation"</span>, </span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Mean Almond Profit ($/acre)"</span>, </span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Almond Profit in Reponse to Precipitation Variation"</span>) </span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Price sensitivity (and mean_profit)</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>plot_price <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(mean_profit, <span class="fu">aes</span>(<span class="at">x =</span> p, <span class="at">y =</span> mean_profit)) <span class="sc">+</span> </span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">col =</span> <span class="st">"seagreen3"</span>, </span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span> </span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">col =</span> <span class="st">"firebrick"</span>) <span class="sc">+</span> </span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Almond Price ($/lb)"</span>, </span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Mean Almond Profit ($/acre)"</span>, </span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Almond Profit in Reponse to Price Variation"</span>) </span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Discount Rate sensitivity (and mean_profit)</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>plot_discount <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(mean_profit, <span class="fu">aes</span>(<span class="at">x =</span> dis_rate, <span class="at">y =</span> mean_profit)) <span class="sc">+</span> </span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">col =</span> <span class="st">"plum"</span>, </span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span> </span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">col =</span> <span class="st">"firebrick"</span>) <span class="sc">+</span> </span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Discount Rate"</span>, </span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Mean Almond Profit ($/acre)"</span>, </span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Almond Profit in Reponse to Discount Rate Variation"</span>) </span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>main_plot <span class="ot">&lt;-</span> (plot_tmin <span class="sc">+</span> plot_precip) <span class="sc">/</span> (plot_price <span class="sc">+</span> plot_discount)</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"figs"</span>, <span class="st">"assignment4_sensitive_analysis.png"</span>), <span class="at">height =</span> <span class="dv">10</span>, <span class="at">width =</span> <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 
