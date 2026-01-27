@@ -2,10 +2,43 @@
 #'
 #' Computes almond temp anomalies given January precipitation avg and February minimum temperature avgs 
 #' @param almond_df dataframe of almond min and max temperatures and precipitation over time  
+#' @param price default is the average 
 
 almond_profit_fun <- function(almond_df) {
   
-  #....................PULL OUT VARAIBLES FOR EQUATION........................ 
+  #..................MALLORYS ALMOND FUNCTION.......................
+  
+  #   # get T_n,2
+  #   Tn2 <- almond_df %>%
+  #     filter(month == 2) %>% # will filter out years that don't have data in Feb
+  #     group_by(year) %>%
+  #     summarise(avg_tmin_c = mean(tmin_c, na.rm = TRUE))
+  #   
+  #   # get P_1
+  #   P1 <- almond_df %>%
+  #     filter(month == 1) %>% # will filter out years that don't have data in Jan
+  #     group_by(year) %>%
+  #     summarise(sum_precip = sum(precip, na.rm = TRUE))
+  #   
+  #   # combine back to one df
+  #   result <- merge(Tn2, P1, by = "year", all = TRUE)
+  #   
+  #   # get Y
+  #   result <- result %>%
+  #     mutate(
+  #       Y = if_else(
+  #         is.na(avg_tmin_c) | is.na(sum_precip),
+  #         NA_real_,
+  #         (-0.015 * avg_tmin_c) + (-0.0046 * avg_tmin_c^2) + 
+  #           (-0.07 * sum_precip) + (0.0043 * sum_precip^2) + 0.28
+  #       )
+  #     )
+  #   result
+  # }
+  # 
+  
+  #....................PULL OUT VARAIBLES FOR EQUATION........................
+  
   # Pulling out Feb min temps  
   tmin_feb <- almond_df %>% 
     filter(month == 2) %>% 
@@ -36,34 +69,42 @@ almond_profit_fun <- function(almond_df) {
   
   
   #..............................PRICE............................. 
-
-  # Dataframe of almond prices from 2024 California Almond Objective Measurement Report
-  price_lb_df <- data.frame(year = c(1995:2023), 
-                            price_lb = c(2.48, 2.08, 1.56, 1.41, 0.86, 0.97, 0.91, 1.11, 1.57, 2.21, 2.81, 2.06, 1.75, 1.45, 1.65, 1.79, 1.99, 2.58, 3.21, 4.00, 3.13, 2.39, 2.53, 2.50, 2.45, 1.71, 1.86, 1.40, 1.40))
+  
+  # AVERAGE almond prices & Convert price ($/lb) to price ($/ton) 
+  avg_price_ton <- mean(prices) * (1/0.005) ## 1lb = 0.005 tons
+  
+  almond$avg_price_ton <- avg_price_ton 
   
   
-  # Predicting prices of 1988:1994 with above data with an lm_model 
-  lm_model <- lm(price_lb ~ year, 
-                 data = price_lb_df)
+  #.......LM FOR PRICE............
   
-  missing_years <- data.frame(year = 1988:1994) # dataframe of missing year 
-  
-  missing_years$price_lb <- predict(lm_model, newdata = missing_years) # predict price of missing years with `lm_model`
-  
-  price_lb_df <- rbind(missing_years, price_lb_df) # Make one dataframe of prices 
-  
-  # Convert price ($/lb) to price ($/ton) 
-  price_lb_df$price_ton <- price_lb_df$price_lb * (1/0.005) ## 1lb = 0.005 tons
-  
-  # Add prices ($/ton) to almond df 
-  almond <- left_join(almond, price_lb_df, by= "year") %>% 
-    select(-c("price_lb")) # Remove price per lb 
+  # # Dataframe of almond prices from 2024 California Almond Objective Measurement Report
+  # price_lb_df <- data.frame(year = c(1995:2023), 
+  #                           price_lb = c(2.48, 2.08, 1.56, 1.41, 0.86, 0.97, 0.91, 1.11, 1.57, 2.21, 2.81, 2.06, 1.75, 1.45, 1.65, 1.79, 1.99, 2.58, 3.21, 4.00, 3.13, 2.39, 2.53, 2.50, 2.45, 1.71, 1.86, 1.40, 1.40))
+  # 
+  # # Predicting prices of 1988:1994 with above data with an lm_model 
+  # lm_model <- lm(price_lb ~ year, 
+  #                data = price_lb_df)
+  # 
+  # missing_years <- data.frame(year = 1988:1994) # dataframe of missing year
+  # 
+  # missing_years$price_lb <- predict(lm_model, newdata = missing_years) # predict price of missing years with `lm_model`
+  # 
+  # price_lb_df <- rbind(missing_years, price_lb_df) # Make one dataframe of prices 
+  # 
+  # # Convert price ($/lb) to price ($/ton) 
+  # price_lb_df$price_ton <- price_lb_df$price_lb * (1/0.005) ## 1lb = 0.005 tons
+  # 
+  # # Add prices ($/ton) to almond df 
+  # almond <- left_join(almond, price_lb_df, by= "year") %>% 
+  #   select(-c("price_lb")) # Remove price per lb 
   
   
   #..............................COST............................. 
   # Discount Rate function 
-  cost_function <- function(t, base_price = 1569, discount_rate = 0.09) { 
-    base_price / (1 + discount_rate)^(2024-t) } # base price and discount rates from paper 
+  cost_function <- function(t, base_price = 3807, discount_rate = 0.09) { 
+    base_price / (1 + discount_rate)^(2024-t) } # base price and discount rates from UCAR 2024 paper 
+
   
   almond$cost <- cost_function(t = almond$year) # apply `cost_function` to almond years 
   
@@ -71,7 +112,7 @@ almond_profit_fun <- function(almond_df) {
   #.............................PROFIT............................
   almond$yield = (0.9 + almond$yield_anomaly) # baseline + nomaly = yield (ton /acre)
   
-  almond$revenue = almond$yield * almond$price_ton # yield (ton /acre) * price ($/ton) = rev ($/acre)
+  almond$revenue = almond$yield * almond$avg_price_ton # yield (ton /acre) * price ($/ton) = rev ($/acre)
   
   almond$profit = almond$revenue - almond$cost # revenue ($/acre) - cost ($/acre) = profit ($/acre)
   

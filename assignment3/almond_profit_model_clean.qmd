@@ -9,6 +9,8 @@ format: html
 #| echo: false
 library(dplyr)
 library(tidyr)
+library(purrr)
+library(ggplot2)
 ```
 
 ## Load Data and function 
@@ -17,23 +19,76 @@ almonds <- read.table(here::here("assignment3", "clim.txt"),
            header = TRUE)
 
 source(here::here("assignment3","R", "almond_profit_fun.R"))
+source(here::here("assignment3","R", "almond_profit_spaghetti.R"))
+
 ```
 
-## Subset almond df 
-For min and max temps and precipitation per year 
+## Prices
+Create a list of almond prices over the years 
 ```{r}
 #| warnings: false 
 
-almond_subset <- almonds %>% 
-  group_by(month, year) %>% 
-  summarize(tmin = mean(tmin_c, na.rm = TRUE), 
-            tmax = mean(tmax_c, na.rm = TRUE), 
-            precip = sum(precip,  na.rm = TRUE), 
-            .groups = "drop") 
+p <- c(2.48, 2.08, 1.56, 1.41, 0.86, 0.97, 0.91, 1.11, 1.57, 2.21, 2.81, 2.06, 1.75, 1.45, 1.65, 1.79, 1.99, 2.58, 3.21, 4.00, 3.13, 2.39, 2.53, 2.50, 2.45, 1.71, 1.86, 1.40, 1.40)
+  
+  
 ```
 
 ## Run function 
 ```{r}
-almond_profit_fun(almond_df = almond_subset)
+almond_profit_function(almond_df = almonds, prices = p)
+```
+
+
+# Sensitivity Analysis 
+
+Varies the temperature and precipitation inputs, runs your function for each combo, and extracts mean profit.
+
+```{r}
+# Generate parameter samples
+nsamples <- 300
+mean_tmin <- rnorm(mean = 10, sd = 2, n = nsamples)
+mean_precip <- rnorm(mean = 5, sd = 1, n = nsamples)
+
+# Put samples together
+parms <- cbind.data.frame(mean_tmin, mean_precip)
+
+
+# Use pmap with wrapper (because your function needs a dataframe, not scalars like the solar model)
+results <- parms %>% 
+  pmap(function(mean_tmin, mean_precip) {
+    almond_df <- data.frame(
+      tmin_c = rnorm(mean = mean_tmin, sd = 3, n = 40),
+      precip = rnorm(mean = mean_precip, sd = 2, n = 40),
+      month = c(rep(1, 20), rep(2, 20)),
+      year = rep(1981:2000, times = 2)
+      )
+    almond_profit_function(almond_df)
+})
+
+# Extract mean profit 
+mean_profit <- map_df(results, ~data.frame(mean_profit = mean(.x$profit, na.rm = TRUE)))
+#mean_profit <- map_df(results, `[`, c("mean"))
+
+
+# Add parameter values
+mean_profit <- cbind.data.frame(mean_profit, parms)
+mean_profit
+
+```
+
+
+```{r}
+# Graph it
+
+# 1) box or violin of mean_profit 
+
+
+# 2). Parameter SENSITIVITY - how profit responds to each parameter
+# Temperature sensitivity (and mean_profit)
+
+
+# Precipitation sensitivity (and mean_profit)
+
+
 ```
 

@@ -1,0 +1,43 @@
+---
+title: "graphs"
+format: html
+---
+
+```{r}
+# Graph it!
+ggplot(mean_profit, aes(y = mean_profit)) +
+  geom_boxplot() +
+  geom_hline(yintercept = median(mean_profit$mean_profit), 
+             color = "red", linetype = "dashed") +
+  labs(title = "Uncertainty in Almond Profit",
+       y = "Mean Profit ($/acre)") +
+  theme_minimal()
+
+ggplot(mean_profit, aes(x = "", y = mean_profit)) +
+  geom_violin(fill = "lightblue") +
+  geom_hline(yintercept = median(mean_profit$mean_profit), 
+             color = "red", linetype = "dashed") +
+  labs(title = "Uncertainty in Almond Profit",
+       y = "Mean Profit ($/acre)", x = "") +
+  theme_minimal()
+
+# 2. Parameter SENSITIVITY - how profit responds to each parameter
+# Temperature sensitivity
+ggplot(mean_profit, aes(x = mean_tmin, y = mean_profit)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess", color = "red") +
+  labs(title = "Sensitivity to February Temperature",
+       x = "Mean February Tmin (°C)",
+       y = "Mean Profit ($/acre)") +
+  theme_minimal()
+
+# Precipitation sensitivity
+ggplot(mean_profit, aes(x = mean_precip, y = mean_profit)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Sensitivity to January Precipitation",
+       x = "Mean January Precipitation (cm)",
+       y = "Mean Profit ($/acre)") +
+  theme_minimal()
+```
+
