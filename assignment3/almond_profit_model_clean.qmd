@@ -2,7 +2,14 @@
 title: "Almond Profit Model"
 format: html
 warning: false
+Author: "Megan Hessel, Mallory Wang, Isabella Segarra"
+date: Jan 28, 2026
 ---
+
+# Almond Profit Model - Informal Sensitivity Analysis
+### EDS230 Assignment 4
+
+Megan Hessel, Mallory Wang, Isabella Segarra
 
 ```{r}
 #| output: false 
@@ -19,6 +26,8 @@ library(patchwork)
 ```{r}
 almonds <- read.table(here::here("assignment3", "clim.txt"), 
            header = TRUE)
+
+source(here::here("assignment3","R", "almond_yield_function.R"))
 
 source(here::here("assignment3","R", "almond_profit_function.R"))
 
@@ -54,7 +63,7 @@ mean_precip <- rnorm(mean = 1, sd = 0.5, n = nsamples)
 
 dis_rate <- rnorm(mean = 0.08, sd = 0.015, n = nsamples)
 
-price_base <- 1.50
+price_base <- 1.80
 price_sd <- 0.80
 p <- runif(max = price_base + price_sd * price_base, 
           min = price_base - price_sd * price_base, 
@@ -66,7 +75,7 @@ parms <- cbind.data.frame(mean_tmin, mean_precip, dis_rate, p)
 
 
 # RUN THE SIMULATION OVER THE 300 SAMPLES 
-# Use pmap with wrapper (because your function needs a dataframe, not scalars like the solar model). 
+# Use pmap with wrapper (because the `almond_profit_function` needs a dataframe, not scalars like the solar model). 
 # `results` is results of 300 different simulations   
 results <- parms %>% 
   pmap(function(mean_tmin, mean_precip, dis_rate, p) {
@@ -81,9 +90,9 @@ results <- parms %>%
 
 # Extract mean profit column from each simulation result 
 mean_profit <- map_dbl(results, ~mean(.x$profit, na.rm = TRUE))
-#mean_profit <- map_df(results, `[`, c("mean"))
+# mean_profit <- map_df(results, `[`, c("mean"))
 
-# Add parameter values
+# Add parameter values to the profit results 
 mean_profit <- cbind.data.frame(mean_profit, parms)
 
 head(mean_profit)
@@ -145,7 +154,13 @@ plot_discount <- ggplot(mean_profit, aes(x = dis_rate, y = mean_profit)) +
        title = "Almond Profit in Reponse to Discount Rate Variation") 
 
 
+```
+
+```{r, fig.height=10, fig.width=10}
+#| warning: false 
 main_plot <- (plot_tmin + plot_precip) / (plot_price + plot_discount)
+main_plot
 ggsave(here::here("figs", "assignment4_sensitive_analysis.png"), height = 10, width = 10)
+
 ```
 
