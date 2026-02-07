@@ -1,0 +1,152 @@
+---
+title: "sobol_sensitivity_analysis"
+format: html
+author: "Megan Hessel"
+---
+
+## Part 1: Sensitivity Analysis of Model Parameters.
+
+(1) Read one of the 3 papers
+
+(2) Write a paragraph describing how results of the sensitivity analysis reported on in the paper might contribute to understanding (or prediction) within an environmental problem solving or management context.
+
+## Part 2: Atmospheric Conductance Sobol Sensitivity Analysis
+
+Load libraries, function, and data
+
+```{r}
+#| output: false
+library(here)
+library(tidyverse)
+library(sensitivity)
+library(purrr)
+
+source(here("R/Catm.R"))
+clim <- read.delim(here("data/clim.txt"), sep = " ")
+
+```
+
+### Set Parameters and combine into a df 
+Setting the wind speed (v), vegetation height (height), k_o, and k_d parameters 
+```{r}
+# Set Parameters  
+np <- 1000 # number of samples 
+
+v <- rnorm(mean = 300, sd = 50, n = np)
+height <- runif(min = 3.5, max = 5.5, n = np)
+k_o <- rnorm(mean = 0.1, sd = 0.01, n = np)
+k_d <- rnorm(mean = 0.7, sd = 0.01, n = np)
+
+# Combine parameters 
+X1 <- cbind.data.frame(v, height, k_o, k_d) 
+
+#..........................Do it again!..........................
+v <- rnorm(mean = 300, sd = 50, n = np)
+height <- runif(min = 3.5, max = 5.5, n = np)
+k_o <- rnorm(mean = 0.1, sd = 0.01, n = np)
+k_d <- rnorm(mean = 0.7, sd = 0.01, n = np)
+# Combine parameters 
+X2 <- cbind.data.frame(v, height, k_o, k_d)
+```
+
+### Run the model with the parameters for first order 
+```{r}
+# Create a sensitivity object  
+sens_Catm_Sobol <- sensitivity::sobolSalt(model = NULL, 
+                             X1, X2, 
+                             nboot = 100)
+
+# Make object a df using the `X`
+parms = as.data.frame(sens_Catm_Sobol$X)
+colnames(parms) <- colnames(X1) # Change column names 
+
+# Running the model for all set parameters 
+res <- pmap_dbl(parms, Catm)
+```
+
+Tell the sensitive object about the results
+```{r}
+# Tell the sensitive object about the results 
+sens_Catm_Sobol <- sensitivity::tell(sens_Catm_Sobol, res, res.names = "gs")
+```
+
+Look at sensitivity results
+```{r}
+# S = Main effect / First order sensitivity - variance associated directly with parameter alone 
+rownames(sens_Catm_Sobol$S) <- colnames(parms) # change row names 
+#sens_Catm_Sobol$S
+
+# T = total effect - variance associated with parameter and interaction with other parameters 
+rownames(sens_Catm_Sobol$T) <- colnames(parms) # change row names 
+#sens_Catm_Sobol$T
+
+# Look at main and total effecrs together 
+print(sens_Catm_Sobol)
+
+```
+
+**Indices Interpretations**
+
+*Main Effect:* represent fraction of the output variance due to a single input parameter.
+
+-   Conductance variance is largely associated (60%) with windspeed (v). Second most important is K_o. Whereas, vegetation height has moderate influence, and k_d has approximately no impact on the output variance. 
+
+*Total effect:* Variance associated with parameter and interaction with other parameters 
+
+-   The total effect indices ≈ main effect indices, which means interactions between parameters are minimal. Therefore, the inputs are influencing the outcome independently and not interacting. 
+
+
+## Plot
+Plotting all parameters impacts on conductance
+```{r}
+# Combine sensitive indicies together 
+sens_indicies <- cbind.data.frame(parms, gs = sens_Catm_Sobol$y)
+
+# overall gs Sensitivity to uncertainty
+ggplot(sens_indicies, aes(x = gs)) +
+  geom_histogram(fill = "grey50") +
+  geom_vline(xintercept = mean(sens_indicies$gs), col = "goldenrod", linewidth = 1.3) + 
+  theme_minimal() + 
+  labs(title = "Histogram of Generated Sensitivity", 
+       x = "Generated Sensitivity", 
+       y = "Count")
+
+# response of conductance to wind speed (most important variable) and height
+ggplot(sens_indicies, aes(v, gs, color = height)) +
+  geom_point(alpha = 0.5
+             ) +
+  scale_color_viridis_c(option = "viridis", direction = -1) +
+  labs(y = "Conductance (mm/s)", 
+       x = "Windspeed (m/s)", 
+       title = "Catm model's conductance and vegetation height\nwith various windspeeds", 
+       col = "Vegetation\nheight (m)"
+       ) + 
+  theme_bw()
+
+
+# response of conductance to the second most important variable - K_o
+ggplot(sens_indicies, aes(k_o, gs, col = k_d)) +
+  geom_point(alpha = 0.5) +
+  scale_color_viridis_c(option = "inferno", direction = -1) +
+  labs(title = "Catm model's conductance and k_d parameters\nwith various k_o parameters", 
+       y = "Conductance (mm/s)", 
+       x = "k_o parameter", 
+       col = "k_d parameter", 
+       caption = "k_o parameter: scalar for roughness\nk_d parameter: scalar for zero plane displacement") + 
+  theme_bw()
+
+
+
+```
+## In class plots 
+```{r}
+knitr::include_graphics(here::here("figs", "sobol_sens_plots.png"))
+```
+
+
+## Discussion 
+
+According to the Compute Atmospheric Conductance model, conductance variance is 60% due to the wind speed input and 26% due to k_o input (scalar for roughness). The input influences are independent of each other. With higher and more variable wind speeds and shorter vegetation height, the Sobol sensitive analysis shows wind speed and conductance have a positive relationship where as wind speed increases, conductance increases. 
+
+In class (where windspeed was lower and less variable and vegetation was taller), the sensitivity analysis showed k_d impacted the output variance the most and all other variables having minimal impact. And as k_d increased, conductance increased slightly. Wind speed had limited influence on conductance. However, in the setting with higher and more variable wind speeds, wind speed had a huge positive associationship with conductance. 
+
