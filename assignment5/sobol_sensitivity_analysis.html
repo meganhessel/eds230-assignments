@@ -8,7 +8,7 @@
 
 <meta name="author" content="Megan Hessel">
 
-<title>sobol_sensitivity_analysis</title>
+<title>Sobol Sensitivity Analysis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -83,7 +83,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">sobol_sensitivity_analysis</h1>
+<h1 class="title">Sobol Sensitivity Analysis</h1>
 </div>
 
 
@@ -108,10 +108,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="part-1-sensitivity-analysis-of-model-parameters." class="level2">
 <h2 class="anchored" data-anchor-id="part-1-sensitivity-analysis-of-model-parameters.">Part 1: Sensitivity Analysis of Model Parameters.</h2>
-<ol type="1">
-<li><p>Read one of the 3 papers</p></li>
-<li><p>Write a paragraph describing how results of the sensitivity analysis reported on in the paper might contribute to understanding (or prediction) within an environmental problem solving or management context.</p></li>
-</ol>
+<section id="summarizing-paper" class="level3">
+<h3 class="anchored" data-anchor-id="summarizing-paper">Summarizing Paper</h3>
+<p>In Zeferina et al., 2021, they run a two sensitivity models (Morris elementary and Sobol indices) to understand the uncertainty of a 12-story office building’s cooling demand in six different climates. The model analyzed total electrify, HVAC end-use, non-HVAC, and space cooling of annual and peak demands. Compared to annual demand, peak demand typically showed more uncertainty, making it harder to predict peak loads. The ventilation rate is the dominate parameter to reduce HVAC energy in office buildings. Nevertheless, equipment and lighting densities also play a large role in sensitive to the total demand.</p>
+</section>
+<section id="how-sensitivity-analysis-contributes-to-understanding-within-environmentalmanagement-problem-solving" class="level3">
+<h3 class="anchored" data-anchor-id="how-sensitivity-analysis-contributes-to-understanding-within-environmentalmanagement-problem-solving">How sensitivity analysis contributes to understanding within environmental/management problem solving</h3>
+<p>The study’s sensitivity testing offers strategies and ideas to new building designs to reduce energy consumption in specific climates. The two models also provide evidence-based parameter rankings to understand energy efficiency and ventilation standard in the buildings for different areas. By looking into the different climates, Zeferina et al., 2021 shows that there is not a ‘one-size-fits-all’ solution. Looking at sensitivity by location is beneficial and offers better, more tailored designs. The two model variation analysis helps policymakers and building managers understand confidence bounds around energy projections for budgeting, energy efficiency, and climate mitigation.</p>
+</section>
 </section>
 <section id="part-2-atmospheric-conductance-sobol-sensitivity-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="part-2-atmospheric-conductance-sobol-sensitivity-analysis">Part 2: Atmospheric Conductance Sobol Sensitivity Analysis</h2>
@@ -129,24 +133,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="set-parameters-and-combine-into-a-df">Set Parameters and combine into a df</h3>
 <p>Setting the wind speed (v), vegetation height (height), k_o, and k_d parameters</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Set Parameters  </span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>np <span class="ot">&lt;-</span> <span class="dv">1000</span> <span class="co"># number of samples </span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Set seed</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="dv">300</span>, <span class="at">sd =</span> <span class="dv">50</span>, <span class="at">n =</span> np)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>height <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="at">min =</span> <span class="fl">3.5</span>, <span class="at">max =</span> <span class="fl">5.5</span>, <span class="at">n =</span> np)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>k_o <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="fl">0.1</span>, <span class="at">sd =</span> <span class="fl">0.01</span>, <span class="at">n =</span> np)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>k_d <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="fl">0.7</span>, <span class="at">sd =</span> <span class="fl">0.01</span>, <span class="at">n =</span> np)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine parameters </span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>X1 <span class="ot">&lt;-</span> <span class="fu">cbind.data.frame</span>(v, height, k_o, k_d) </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Set Parameters  </span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>np <span class="ot">&lt;-</span> <span class="dv">1000</span> <span class="co"># number of samples </span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="dv">300</span>, <span class="at">sd =</span> <span class="dv">50</span>, <span class="at">n =</span> np)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>height <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="at">min =</span> <span class="fl">3.5</span>, <span class="at">max =</span> <span class="fl">5.5</span>, <span class="at">n =</span> np)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>k_o <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="fl">0.1</span>, <span class="at">sd =</span> <span class="fl">0.01</span>, <span class="at">n =</span> np)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>k_d <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="fl">0.7</span>, <span class="at">sd =</span> <span class="fl">0.01</span>, <span class="at">n =</span> np)</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#..........................Do it again!..........................</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="dv">300</span>, <span class="at">sd =</span> <span class="dv">50</span>, <span class="at">n =</span> np)</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>height <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="at">min =</span> <span class="fl">3.5</span>, <span class="at">max =</span> <span class="fl">5.5</span>, <span class="at">n =</span> np)</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>k_o <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="fl">0.1</span>, <span class="at">sd =</span> <span class="fl">0.01</span>, <span class="at">n =</span> np)</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>k_d <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="fl">0.7</span>, <span class="at">sd =</span> <span class="fl">0.01</span>, <span class="at">n =</span> np)</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine parameters </span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>X2 <span class="ot">&lt;-</span> <span class="fu">cbind.data.frame</span>(v, height, k_o, k_d)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine parameters </span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>X1 <span class="ot">&lt;-</span> <span class="fu">cbind.data.frame</span>(v, height, k_o, k_d) </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#..........................Do it again!..........................</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="dv">300</span>, <span class="at">sd =</span> <span class="dv">50</span>, <span class="at">n =</span> np)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>height <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="at">min =</span> <span class="fl">3.5</span>, <span class="at">max =</span> <span class="fl">5.5</span>, <span class="at">n =</span> np)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>k_o <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="fl">0.1</span>, <span class="at">sd =</span> <span class="fl">0.01</span>, <span class="at">n =</span> np)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>k_d <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="at">mean =</span> <span class="fl">0.7</span>, <span class="at">sd =</span> <span class="fl">0.01</span>, <span class="at">n =</span> np)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine parameters </span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>X2 <span class="ot">&lt;-</span> <span class="fu">cbind.data.frame</span>(v, height, k_o, k_d)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="run-the-model-with-the-parameters-for-first-order" class="level3">
@@ -188,27 +195,27 @@ sensitivity::sobolSalt(model = NULL, X1 = X1, X2 = X2, nboot = 100)
 
 Model runs: 6000 
 
-Model variance: 6337286 
+Model variance: 6253902 
 
 First order indices:
-         original          bias std. error   min. c.i.  max. c.i.
-v      0.58252886  0.0001287375 0.01981731  0.54752652 0.62693188
-height 0.14579374 -0.0032738877 0.03001270  0.08104042 0.20076746
-k_o    0.25403617  0.0006398097 0.02573870  0.20841651 0.30973374
-k_d    0.01123979 -0.0020752168 0.02703910 -0.05316180 0.06860844
+         original          bias std. error   min. c.i. max. c.i.
+v      0.65505976 -0.0005431786 0.01934133  0.62175467 0.7025337
+height 0.14826017 -0.0002442694 0.03012014  0.08190891 0.2132196
+k_o    0.22341045 -0.0023909112 0.02899340  0.17271131 0.2831393
+k_d    0.01615381 -0.0017911161 0.03178972 -0.05896100 0.0808735
 
 Total indices:
           original          bias   std. error   min. c.i.   max. c.i.
-v      0.605692408  3.286648e-03 0.0258083530 0.544995524 0.646327467
-height 0.144433759  3.889211e-04 0.0077906068 0.126255344 0.158522853
-k_o    0.227926198 -3.624740e-05 0.0127755298 0.203500945 0.251756101
-k_d    0.004386655  6.139073e-06 0.0002722419 0.003720252 0.004852983</code></pre>
+v      0.651067650  1.521249e-03 0.0307352488 0.584255040 0.706738077
+height 0.141247284  1.256140e-03 0.0090331325 0.119572169 0.156428531
+k_o    0.221466662 -1.743257e-03 0.0132154411 0.200931609 0.253357039
+k_d    0.004268764  1.635363e-05 0.0003290392 0.003549509 0.004865007</code></pre>
 </div>
 </div>
 <p><strong>Indices Interpretations</strong></p>
 <p><em>Main Effect:</em> represent fraction of the output variance due to a single input parameter.</p>
 <ul>
-<li>Conductance variance is largely associated (60%) with windspeed (v). Second most important is K_o. Whereas, vegetation height has moderate influence, and k_d has approximately no impact on the output variance.</li>
+<li>Conductance variance is largely associated (~66%) with wind speed (v). Second most important is K_o. Whereas, vegetation height has moderate influence, and k_d has approximately no impact on the output variance.</li>
 </ul>
 <p><em>Total effect:</em> Variance associated with parameter and interaction with other parameters</p>
 <ul>
@@ -247,8 +254,8 @@ k_d    0.004386655  6.139073e-06 0.0002722419 0.003720252 0.004852983</code></pr
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>             ) <span class="sc">+</span></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_c</span>(<span class="at">option =</span> <span class="st">"viridis"</span>, <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Conductance (mm/s)"</span>, </span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Windspeed (m/s)"</span>, </span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Catm model's conductance and vegetation height</span><span class="sc">\n</span><span class="st">with various windspeeds"</span>, </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Wind speed (m/s)"</span>, </span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Catm model's conductance and vegetation height</span><span class="sc">\n</span><span class="st">with various wind speeds"</span>, </span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">"Vegetation</span><span class="sc">\n</span><span class="st">height (m)"</span></span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>       ) <span class="sc">+</span> </span>
 <span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -293,8 +300,8 @@ k_d    0.004386655  6.139073e-06 0.0002722419 0.003720252 0.004852983</code></pr
 </section>
 <section id="discussion" class="level2">
 <h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
-<p>According to the Compute Atmospheric Conductance model, conductance variance is 60% due to the wind speed input and 26% due to k_o input (scalar for roughness). The input influences are independent of each other. With higher and more variable wind speeds and shorter vegetation height, the Sobol sensitive analysis shows wind speed and conductance have a positive relationship where as wind speed increases, conductance increases.</p>
-<p>In class,</p>
+<p>According to the Compute Atmospheric Conductance model, conductance variance is ~66% due to the wind speed input and 22% due to the k_o input (scalar for roughness). The input influences are independent of each other. With higher and more variable wind speeds and shorter vegetation height, the Sobol sensitive analysis shows wind speed and conductance have a positive relationship where as wind speed increases, conductance increases.</p>
+<p>In class (where wind speed was lower and less variable and vegetation was taller), the sensitivity analysis showed k_d impacted the output variance the most and all other variables having minimal impact. And as k_d increased, conductance increased slightly. Wind speed had limited influence on conductance. However, in the setting with higher and more variable wind speeds, wind speed had a huge positive associationship with conductance.</p>
 </section>
 
 </main>

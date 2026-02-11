@@ -1,14 +1,20 @@
 ---
-title: "sobol_sensitivity_analysis"
+title: "Sobol Sensitivity Analysis"
 format: html
 author: "Megan Hessel"
 ---
 
 ## Part 1: Sensitivity Analysis of Model Parameters.
 
-(1) Read one of the 3 papers
+### Summarizing Paper 
 
-(2) Write a paragraph describing how results of the sensitivity analysis reported on in the paper might contribute to understanding (or prediction) within an environmental problem solving or management context.
+In Zeferina et al., 2021, they run a two sensitivity models (Morris elementary and Sobol indices) to understand the uncertainty of a 12-story office building's cooling demand in six different climates. The model analyzed total electrify, HVAC end-use, non-HVAC, and space cooling of annual and peak demands. Compared to annual demand, peak demand typically showed more uncertainty, making it harder to predict peak loads. The ventilation rate is the dominate parameter to reduce HVAC energy in office buildings. Nevertheless, equipment and lighting densities also play a large role in sensitive to the total demand. 
+
+
+### How sensitivity analysis contributes to understanding within environmental/management problem solving
+
+The study's sensitivity testing offers strategies and ideas to new building designs to reduce energy consumption in specific climates. The two models also provide evidence-based parameter rankings to understand energy efficiency and ventilation standard in the buildings for different areas. By looking into the different climates, Zeferina et al., 2021 shows that there is not a 'one-size-fits-all' solution. Looking at sensitivity by location is beneficial and offers better, more tailored designs. The two model variation analysis helps policymakers and building managers understand confidence bounds around energy projections for budgeting, energy efficiency, and climate mitigation. 
+
 
 ## Part 2: Atmospheric Conductance Sobol Sensitivity Analysis
 
@@ -29,6 +35,9 @@ clim <- read.delim(here("data/clim.txt"), sep = " ")
 ### Set Parameters and combine into a df 
 Setting the wind speed (v), vegetation height (height), k_o, and k_d parameters 
 ```{r}
+# Set seed
+set.seed(1234)
+
 # Set Parameters  
 np <- 1000 # number of samples 
 
@@ -89,12 +98,11 @@ print(sens_Catm_Sobol)
 
 *Main Effect:* represent fraction of the output variance due to a single input parameter.
 
--   Conductance variance is largely associated (60%) with windspeed (v). Second most important is K_o. Whereas, vegetation height has moderate influence, and k_d has approximately no impact on the output variance. 
+-   Conductance variance is largely associated (~66%) with wind speed (v). Second most important is K_o. Whereas, vegetation height has moderate influence, and k_d has approximately no impact on the output variance. 
 
 *Total effect:* Variance associated with parameter and interaction with other parameters 
 
 -   The total effect indices ≈ main effect indices, which means interactions between parameters are minimal. Therefore, the inputs are influencing the outcome independently and not interacting. 
-
 
 ## Plot
 Plotting all parameters impacts on conductance
@@ -117,8 +125,8 @@ ggplot(sens_indicies, aes(v, gs, color = height)) +
              ) +
   scale_color_viridis_c(option = "viridis", direction = -1) +
   labs(y = "Conductance (mm/s)", 
-       x = "Windspeed (m/s)", 
-       title = "Catm model's conductance and vegetation height\nwith various windspeeds", 
+       x = "Wind speed (m/s)", 
+       title = "Catm model's conductance and vegetation height\nwith various wind speeds", 
        col = "Vegetation\nheight (m)"
        ) + 
   theme_bw()
@@ -138,15 +146,17 @@ ggplot(sens_indicies, aes(k_o, gs, col = k_d)) +
 
 
 ```
+
 ## In class plots 
 ```{r}
 knitr::include_graphics(here::here("figs", "sobol_sens_plots.png"))
+
 ```
 
 
 ## Discussion 
 
-According to the Compute Atmospheric Conductance model, conductance variance is 60% due to the wind speed input and 26% due to k_o input (scalar for roughness). The input influences are independent of each other. With higher and more variable wind speeds and shorter vegetation height, the Sobol sensitive analysis shows wind speed and conductance have a positive relationship where as wind speed increases, conductance increases. 
+According to the Compute Atmospheric Conductance model, conductance variance is ~66% due to the wind speed input and 22% due to the k_o input (scalar for roughness). The input influences are independent of each other. With higher and more variable wind speeds and shorter vegetation height, the Sobol sensitive analysis shows wind speed and conductance have a positive relationship where as wind speed increases, conductance increases. 
 
-In class (where windspeed was lower and less variable and vegetation was taller), the sensitivity analysis showed k_d impacted the output variance the most and all other variables having minimal impact. And as k_d increased, conductance increased slightly. Wind speed had limited influence on conductance. However, in the setting with higher and more variable wind speeds, wind speed had a huge positive associationship with conductance. 
+In class (where wind speed was lower and less variable and vegetation was taller), the sensitivity analysis showed k_d impacted the output variance the most and all other variables having minimal impact. And as k_d increased, conductance increased slightly. Wind speed had limited influence on conductance. However, in the setting with higher and more variable wind speeds, wind speed had a huge positive associationship with conductance. 
 
