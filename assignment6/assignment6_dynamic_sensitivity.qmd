@@ -99,15 +99,17 @@ np <- 300
 r <- rnorm(mean = 0.01, sd = 0.001, n = np)
 g <- rnorm(mean = 2,    sd = 0.2,   n = np)
 K <- rnorm(mean = 250,  sd = 25,    n = np)
+thresh <- rnorm(mean = 50, sd = 5, n = np)
 
-x1 <- cbind.data.frame(r = r, g = g, K = K)
+x1 <- cbind.data.frame(r = r, g = g, K = K, thresh = thresh)
 
 # Generate sample paramters... again! 
 r <- rnorm(mean = 0.01, sd = 0.001, n = np)
 g <- rnorm(mean = 2,    sd = 0.2,   n = np)
 K <- rnorm(mean = 250,  sd = 25,    n = np)
+thresh <- rnorm(mean = 50, sd = 5, n = np)
 
-x2 <- cbind.data.frame(r = r, g = g, K = K)
+x2 <- cbind.data.frame(r = r, g = g, K = K, thresh = thresh)
 ```
 
 Create the Sobol Object
@@ -119,7 +121,7 @@ sens_forest <- sobolSalt(model = NULL,
           nboot = 300)
 
 # Change the Column names 
-colnames(sens_forest$X) <- c("r", "g", "K")
+colnames(sens_forest$X) <- c("r", "g", "K", "thresh")
 
 # Look at it 
 head(sens_forest$X)
@@ -139,8 +141,8 @@ metricfunc <- function(result) {
 Build a Wrapper Function: runs ode and extracts the results for all the parameters at once
 
 ```{r}
-wrapper_func <- function(r, g, K, Cinitial, simtimes, odefunc, metricfunc) {
-  parms <- list(r = r, g = g, K = K) # List of parameters 
+wrapper_func <- function(r, g, K, thresh, Cinitial, simtimes, odefunc, metricfunc) {
+  parms <- list(r = r, g = g, K = K, thresh = thresh) # List of parameters 
   results <- ode(y = Cinitial,  # Run the ODE function
                    times = simtimes, 
                    func = odefunc, 
@@ -182,13 +184,14 @@ Graph with a boxplot
 ```{r}
 ggplot(allres) + 
   geom_boxplot(aes(x = maxC)) + 
-  labs(title = "Maximun Forest Size Boxplot", 
+  labs(title = "Max Forest Size Boxplot for 300 years", 
        subtitle = "Understanding forest growth rates.",
        x = "Size of the Forest in Units of Carbon") + 
   theme_gray() +
   theme(axis.ticks.y = element_blank(), 
         axis.text.y = element_blank())
 ```
+
 
 Compute the Sobol Indicies
 
@@ -197,8 +200,8 @@ Compute the Sobol Indicies
 sens_forest_sobol_ind <- sensitivity::tell(sens_forest, allres$maxC)
 
 # Change rownames 
-rownames(sens_forest_sobol_ind$S) <- c("r", "g", "K") 
-rownames(sens_forest_sobol_ind$T) <- c("r", "g", "K") 
+rownames(sens_forest_sobol_ind$S) <- c("r", "g", "K", "thresh") 
+rownames(sens_forest_sobol_ind$T) <- c("r", "g", "K", "thresh") 
 
 # Look at Sobol Indicies 
 sens_forest_sobol_ind$S
@@ -208,18 +211,26 @@ sens_forest_sobol_ind$T
 
 Looking at Sobol Indicies:
 
--   The main effect / first order sensitivity (`sens_forest_sobol_ind$S`) results show all the parameters are impacting the output variance. The carrying capacity (K) is impacting the output variance the most, followed closely by the exponential growth rate (r), and post-canopy growth rate (g)) matters the least.
+-   The main effect / first order sensitivity (`sens_forest_sobol_ind$S`) results show all the parameters are impacting the output variance. The carrying capacity (K) is impacting the output variance the most, followed closely by the exponential growth rate (r), then post-canopy growth rate (g), and threshold matters the least. 
 
--   The total effect (`sens_forest_sobol_ind$T`) results show all parameters impact the variance due to parameter interactions, especially carrying capacity (K) and exponential growth rate (r). Whereas, post-canopy growth rate (g) matters the least.
+-   The total effect (`sens_forest_sobol_ind$T`) results show all parameters impact the variance due to parameter interactions, especially carrying capacity (K) and exponential growth rate (r), followed by post-canopy growth rate (g). Whereas, the threshold matters the least.
 
 
+Graph
+```{r}
+df <- as.data.frame(cbind(allres, sens_forest$X)) 
+
+ggplot(df) + 
+  geom_point(aes(x = K, y = maxC, color = r)) + 
+  labs(title = "Max Forest (C) by Carrying Capacity (K) and Exponential Growth Rate (r)")
+
+```
 
 6.  In 2-3 sentences, discuss what the results of your simulation might mean. (For example think about how what parameters climate change might influence).
 
 This results suggest K (carrying capacity) and r (growth rate) are the most influential parameters in explaining about \~40% of variance in maximum forest size, and post-canopy growth rate (g) matter the least. 
 
 Since K explains the most variance, forests are most sensitive to anything that limits the maximum amount of carbon a forest can store, such as climate change induced droughts, wildfires, and permanent habitat loss. Furthermore, the model shows that growth rate (r) this is the second biggest lever; therefore, stressors to young growing trees, such as climate changes induced elevated temperatures and CO2 levels, largely impact forest sizes. 
-
 
 
 
@@ -232,7 +243,7 @@ sens_forest2 <- sobolSalt(model = NULL,
                               scheme = "B") 
 
 # Change the Column names 
-colnames(sens_forest2$X) <- c("r", "g", "K")
+colnames(sens_forest2$X) <- c("r", "g", "K", "thresh")
 
 # Make sobol object a dataframe 
 parms_2 <- as.data.frame(sens_forest2$X)
@@ -255,11 +266,21 @@ sens_forest_sobol_ind2 <- sensitivity::tell(sens_forest2, allres2$maxC, res.name
 
 
 # Change rownames 
-rownames(sens_forest_sobol_ind2$S2) <- c("r-g", "r-K", "g-K") 
-
+rownames(sens_forest_sobol_ind2$S2) <- c("r-g", "r-K", "r-thresh", "g-K", "g-thresh", "K-thresh")
+  
 # Look at Sobol Indicies 
 sens_forest_sobol_ind2$S2
 
+# Boxplot 
+ggplot(allres2) + 
+  geom_boxplot(aes(x = maxC)) + 
+  labs(title = "Max Forest Size Boxplot for 100 years", 
+       subtitle = "Understanding forest growth rates.",
+       x = "Size of the Forest in Units of Carbon") + 
+  theme_gray() +
+  theme(axis.ticks.y = element_blank(), 
+        axis.text.y = element_blank())
+
 ```
 
-These second-order indices are all small with close to zero confidence intervals. Therefore, there is no significant pairwise interactions between parameters and r, g, and K act independently. 
+These second-order indices are all small with close to zero confidence intervals. Therefore, there is no significant pairwise interactions between parameters and r, g, K, and thresh act independently. 
