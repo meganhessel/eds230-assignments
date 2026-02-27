@@ -1,5 +1,6 @@
 ---
 title: 'Assignment: Using Sobol with an ODE'
+author: "Megan Hessel" 
 output:
   pdf_document: default
   html_document: default
@@ -8,7 +9,6 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 
 Consider the following model of forest growth (where forest size in measured in units of carbon (C))
 
@@ -20,11 +20,9 @@ Consider the following model of forest growth (where forest size in measured in 
 
 The size of the forest ($C$), Canopy closure threshold and carrying capacity are all in units of carbon
 
-
 You could think of the canopy closure threshold as the size of the forest at which growth rates change from exponential to linear You can think of $r$, as early exponential growth rate and $g$ as the linear growth rate once canopy closure has been reached
 
 ## [Your task]{style="color:orange"} {.scrollable}
-
 
 5.  Graph the results of the sensitivity analysis as a box plot of maximum forest size and record the two Sobol indices (**S** and **T**).
 
@@ -41,6 +39,7 @@ Compute Sobol indices for a second metric: forest size after a 100 years
 ## Grading Rubric
 
 ```{r}
+#| output: false
 library(tidyverse)
 library(deSolve)
 library(here)
@@ -80,8 +79,7 @@ colnames(res) <- c("time", "carbon")
 
 # Graph 
 ggplot(as.data.frame(res), aes(time, carbon)) +
-  geom_point()
-
+  geom_point() 
 ```
 
 4.  Run a sobol global (vary all parameters at the same time) sensitivity analysis that explores how the estimated **maximum forest size** (e.g maximum of $C$ 300 years, varies with these parameters
@@ -92,9 +90,8 @@ ggplot(as.data.frame(res), aes(time, carbon)) +
 
 Assume that parameters are all normally distributed with means as given above and standard deviation of 10% of mean value
 
+Generate the Sample parameters (r, g, K) with means from above and sd of 10% of the mean values
 
-
-Generate the Sample parameters (r, g, K) with means from above and sd of 10% of the mean values 
 ```{r}
 # Generate sample paramters 
 
@@ -113,7 +110,8 @@ K <- rnorm(mean = 250,  sd = 25,    n = np)
 x2 <- cbind.data.frame(r = r, g = g, K = K)
 ```
 
-Create the Sobol Object 
+Create the Sobol Object
+
 ```{r}
 # Create the sobol object
 sens_forest <- sobolSalt(model = NULL, 
@@ -127,7 +125,8 @@ colnames(sens_forest$X) <- c("r", "g", "K")
 head(sens_forest$X)
 ```
 
-Create a Function that shows important metrics 
+Create a Function that shows important metrics
+
 ```{r}
 # The metrics: the max forest size (Carbon units)
 metricfunc <- function(result) {
@@ -137,8 +136,8 @@ metricfunc <- function(result) {
 
 ```
 
-Build a Wrapper Function: 
-runs ode and extracts the results for all the parameters at once 
+Build a Wrapper Function: runs ode and extracts the results for all the parameters at once
+
 ```{r}
 wrapper_func <- function(r, g, K, Cinitial, simtimes, odefunc, metricfunc) {
   parms <- list(r = r, g = g, K = K) # List of parameters 
@@ -156,7 +155,8 @@ wrapper_func <- function(r, g, K, Cinitial, simtimes, odefunc, metricfunc) {
 
 ```
 
-Use the wrapper function to explores how the estimated maximum forest size changes as the parameters vary 
+Use the wrapper function to explores how the estimated maximum forest size changes as the parameters vary
+
 ```{r}
 Cinitial <- 10
 
@@ -175,10 +175,10 @@ allres <- allresults %>% map_dfr(`[`, c("maxC"))
 head(allres) # Look at dataframe 
 ```
 
+5.  Graph the results of the sensitivity analysis as a box plot of maximum forest size and record the two Sobol indices (S and T).
 
-5. Graph the results of the sensitivity analysis as a box plot of maximum forest size and record the two Sobol indices (S and T).
+Graph with a boxplot
 
-Graph with a boxplot 
 ```{r}
 ggplot(allres) + 
   geom_boxplot(aes(x = maxC)) + 
@@ -190,7 +190,8 @@ ggplot(allres) +
         axis.text.y = element_blank())
 ```
 
-Compute the Sobol Indicies 
+Compute the Sobol Indicies
+
 ```{r}
 # tell our original Sobol object about the results.
 sens_forest_sobol_ind <- sensitivity::tell(sens_forest, allres$maxC)
@@ -205,21 +206,60 @@ sens_forest_sobol_ind$T
 
 ```
 
-6. In 2-3 sentences, discuss what the results of your simulation might mean. (For example think about how what parameters climate change might influence).
+Looking at Sobol Indicies:
 
-**Results**
+-   The main effect / first order sensitivity (`sens_forest_sobol_ind$S`) results show all the parameters are impacting the output variance. The carrying capacity (K) is impacting the output variance the most, followed closely by the exponential growth rate (r), and post-canopy growth rate (g)) matters the least.
 
-The main effect / first order sensitivity (`sens_forest_sobol_ind$S`) results show all the parameters are impacting the output variance. The carrying capacity (K) is impacting the output variance the most, followed closely by the exponential growth rate (r). 
-
-The total effect (`sens_forest_sobol_ind$T`) results show all parameters impact the variance due to parameter interactions, especially carrying capacity (K) and exponential growth rate (r). 
-
-CHAT GPT 
-K and r dominate maximum forest size (highest first and total-order indices), while g (post-canopy growth rate) matters least. This suggests that a forest's ultimate carbon sequestration potential is most sensitive to its carrying capacity and early exponential growth rate. Climate change could impact both — drought and heat stress may reduce K (lower water/nutrient availability capping forest size), while warming-extended growing seasons or CO₂ fertilization could increase r, partially offsetting losses, making these two parameters key targets for climate impact assessments.
+-   The total effect (`sens_forest_sobol_ind$T`) results show all parameters impact the variance due to parameter interactions, especially carrying capacity (K) and exponential growth rate (r). Whereas, post-canopy growth rate (g) matters the least.
 
 
-EXTRA CREDIT: Compute Sobol indices for a second metric: forest size after a 100 years
+
+6.  In 2-3 sentences, discuss what the results of your simulation might mean. (For example think about how what parameters climate change might influence).
+
+This results suggest K (carrying capacity) and r (growth rate) are the most influential parameters in explaining about \~40% of variance in maximum forest size, and post-canopy growth rate (g) matter the least. 
+
+Since K explains the most variance, forests are most sensitive to anything that limits the maximum amount of carbon a forest can store, such as climate change induced droughts, wildfires, and permanent habitat loss. Furthermore, the model shows that growth rate (r) this is the second biggest lever; therefore, stressors to young growing trees, such as climate changes induced elevated temperatures and CO2 levels, largely impact forest sizes. 
+
+
+
+
+**EXTRA CREDIT**: Compute Sobol indices for a second metric: forest size after a 100 years
+
 ```{r}
+# Create Sobol object 
+sens_forest2 <- sobolSalt(model = NULL, 
+                              x1, x2, nboot = 300, 
+                              scheme = "B") 
 
+# Change the Column names 
+colnames(sens_forest2$X) <- c("r", "g", "K")
+
+# Make sobol object a dataframe 
+parms_2 <- as.data.frame(sens_forest2$X)
+
+
+# Use pmap to run the wrapper function over the sobol `sens_forest` object 
+allresults2 <- as.data.frame(sens_forest2$X) %>% pmap(wrapper_func, 
+                                      Cinitial = Cinitial, 
+                                      simtimes = tm, 
+                                      odefunc = forest_growth_func, 
+                                      metricfunc = metricfunc)
+
+
+# Extract the results from pmap into a data frame
+allres2 <- allresults2 %>% map_dfr(`[`, c("maxC"))
+
+
+# tell our original Sobol object about the results.
+sens_forest_sobol_ind2 <- sensitivity::tell(sens_forest2, allres2$maxC, res.names = "ga")
+
+
+# Change rownames 
+rownames(sens_forest_sobol_ind2$S2) <- c("r-g", "r-K", "g-K") 
+
+# Look at Sobol Indicies 
+sens_forest_sobol_ind2$S2
 
 ```
 
+These second-order indices are all small with close to zero confidence intervals. Therefore, there is no significant pairwise interactions between parameters and r, g, and K act independently. 
