@@ -1,4 +1,9 @@
 ---
+title: "assignment7_try4"
+format: html
+---
+
+---
 title: "Assignment 7 - Two Variables ODE"
 output:
   pdf_document: default
@@ -38,8 +43,8 @@ To ensure that you might also add a minimum prey population input that must be m
 Note you can make this as simple or as complex as you would like. You could represent hunting in a way that is similar to "harvesting" in the last assignment - or you could make hunting an exogenous process - so a time based input to your model
 
 ```{r}
-source(here::here("assignment7", "pred_prey_func.R"))
-pred_prey_func
+source(here::here("assignment7", "lotvmodk_hunt.R"))
+lotvmodk_hunt
 ```
 
 ## **Part 2**
@@ -68,16 +73,16 @@ Looking at predator and prey population with 10% predatory and prey hunting rate
 
 ```{r}
 # inital conditions
-inital_cond <- c(prey = 10, pred = 2)
+inital_cond <- c(prey = 100, pred = 20)
 
 # time points
 tm <- seq(from = 1, to = 200) # for 200 days 
 
 # set parameters 
-pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.5, K = 2000, h_prey = 0.1, h_pred = 0.1)
+pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.5, K = 2000, h_prey = 0.2)
 
 # run the model
-res <- ode(func = pred_prey_func, y = inital_cond, times = tm, parms = pars)
+res <- ode(func = lotvmodk_hunt, y = inital_cond, times = tm, parms = pars)
 
 ```
 
@@ -116,9 +121,8 @@ alpha <- rnorm(mean = 0.01, sd = 0.001, n = np)
 eff <- rnorm(mean = 0.6, sd = 0.06, n = np)
 pmort <- rnorm(mean = 0.4, sd = 0.04, n = np)
 h_prey <- rnorm(mean = 0.3, sd = 0.03, n = np)
-h_pred <- rnorm(mean = 0.3, sd = 0.03, n = np)
 
-x1 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort, h_prey = h_prey, h_pred = h_pred)
+x1 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort, h_prey = h_prey)
 
 # repeat to get our second set of samples
 K <- rnorm(mean = 2000, sd = 200, n = np)
@@ -127,9 +131,8 @@ alpha <- rnorm(mean = 0.01, sd = 0.001, n = np)
 eff <- rnorm(mean = 0.6, sd = 0.06, n = np)
 pmort <- rnorm(mean = 0.4, sd = 0.04, n = np)
 h_prey <- rnorm(mean = 0.3, sd = 0.03, n = np)
-h_pred <- rnorm(mean = 0.3, sd = 0.03, n = np)
 
-x2 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort, h_prey = h_prey, h_pred = h_pred)
+x2 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort, h_prey = h_prey)
 ```
 
 Create Sobol Object
@@ -139,22 +142,21 @@ Create Sobol Object
 sens_pp <- sobolSalt(model = NULL, x1, x2, nboot = 300)
 
 # Change column names 
-colnames(sens_pp$X) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
-
+colnames(sens_pp$X) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+sens_pp$X
 ```
 
 Create metric function
 
 ```{r}
-# Create a function to get max and min of 
+# Create a function to get mean prey and predators 
 compute_metrics <- function(result) {
-  maxprey <- max(result$prey)
-  maxpred <- max(result$pred)
-  minprey <- min(result$prey)
-  minpred <- min(result$pred)
-  #prey_stable <- as.numeric(min(result$prey) > 0.1 * K) # 1 stable, 0 collapse 
-  
-  return(list(maxprey = maxprey, minprey = minprey, maxpred = maxpred, minpred = minpred)) #prey_stable = prey_stable))
+ 
+  meanprey <- mean(result$prey)
+  meanpred <- mean(result$pred)
+
+  # return results
+  return(list(meanprey = meanprey, meanpred = meanpred))
 }
 ```
 
@@ -180,15 +182,19 @@ tm <- seq(from = 1, to = 200)
 
 # Run the model for all parameters 
 allresults <- as.data.frame(sens_pp$X) %>% 
-    pmap(wrapper_func, pop = pop, t = tm, func = pred_prey_func)
+    pmap(wrapper_func, pop = pop, t = tm, func = lotvmodk_hunt)
 
 # Results -> unlisted form
-allres <- allresults %>% map_dfr(`[`, c("maxprey", "minprey", "maxpred", "minpred")) #"prey_stable"))
+allres <- allresults %>% map_dfr(`[`, c("meanprey", "meanpred")) #"prey_stable"))
 allres
 
 # Range of response across parameter uncertainity 
 allresl <- allres %>% gather(key = "metric", value = "pop")
 allresl
+
+# Create df with parameters and sobol results
+allresp_df <- as.data.frame(cbind(sens_pp$X, allres))
+allresp_df
 ```
 
 Graphs
@@ -211,25 +217,16 @@ Sobol Indices
 
 ```{r}
 # for minprey 
-sens_PP_minprey <- sens_pp %>% sensitivity::tell(y = allres$minprey)
+sens_PP_meanprey <- sens_pp %>% sensitivity::tell(y = allres$meanprey)
 
-rownames(sens_PP_minprey$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
-rownames(sens_PP_minprey$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
+rownames(sens_PP_meanprey$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+rownames(sens_PP_meanprey$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
 
-# for maxprey 
-sens_PP_maxprey <- sens_pp %>% sensitivity::tell(y = allres$maxprey)
-rownames(sens_PP_maxprey$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
-rownames(sens_PP_maxprey$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
+# for meanpred 
+sens_PP_maxprey <- sens_pp %>% sensitivity::tell(y = allres$meanpred)
+rownames(sens_PP_maxprey$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+rownames(sens_PP_maxprey$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
 
-# for minpred
-sens_PP_minpred <- sens_pp %>% sensitivity::tell(y = allres$minpred)
-rownames(sens_PP_minpred$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
-rownames(sens_PP_minpred$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
-
-# for maxpred
-sens_PP_maxpred <- sens_pp %>% sensitivity::tell(y = allres$maxpred)
-rownames(sens_PP_maxpred$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
-rownames(sens_PP_maxpred$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
 
 ```
 
@@ -241,8 +238,6 @@ sobol_S = as.data.frame(
    rbind(
     sens_PP_maxprey$S$original,
     sens_PP_minprey$S$original,
-   sens_PP_maxpred$S$original,
-    sens_PP_minpred$S$original
   ))
 colnames(sobol_S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey", "h_pred")
 rownames(sobol_S) <- c("maxprey", "minprey", "maxpred", "minpred")

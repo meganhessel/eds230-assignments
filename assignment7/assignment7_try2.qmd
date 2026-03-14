@@ -1,0 +1,299 @@
+---
+title: "assignment7_try2"
+format: html
+---
+
+## henry 
+```{r}
+pars <- c(rprey=0.95, alpha=0.01, eff=0.6, pmort=0.4, K=2000, h_prey=0.1)
+currpop <- c(prey=100, pred=10)
+days <- seq(1, 500)
+
+res <- ode(func=lotvmodk_hunt, y=currpop, times=days, parms=pars)
+resl <- as.data.frame(res) %>% pivot_longer(-time, names_to="species", values_to="pop")
+ggplot(resl, aes(time, pop, col=species)) + geom_line()
+
+# stability testing 
+h_prey <- seq(0, 0.5, by = 0.05) # Test 10 different hunting rates from 0 to 50%
+n_sims <- 100 
+noise_sd <- 0.10 # 10% variation will be used on each parameter
+prey_threshold <- 50 # Stability threshold for prey
+pred_threshold <- 10 # Stability threshold for pred
+base_pars <- c(rprey=0.95, alpha=0.01, eff=0.6, pmort=0.4, K=2000)
+days <- seq(1, 365 * 50, by = 10) # Sample every 10 days for 50 years
+
+results <- map_dfr(h_prey, function(h) {
+  
+  stable <- replicate(n_sims, {
+    # Create parameters with uncertainty
+    noisy_pars <- rnorm(length(base_pars),
+                        mean = base_pars,
+                        sd = abs(base_pars * noise_sd))
+    noisy_pars <- pmax(noisy_pars, 0)
+    
+    names(noisy_pars) <- names(base_pars)
+    
+    pars <- c(noisy_pars, h_prey = h, min_prey = 50)
+    
+# Output   
+out <- ode(func = lotvmodk_hunt, y = c(prey=1, pred=1), times = days, parms = pars)
+
+final_prey <- tail(out[, "prey"], 1)
+final_pred <- tail(out[, "pred"], 1)
+
+final_prey > prey_threshold & final_pred > pred_threshold
+  })
+  
+  data.frame(hunt_rate = h, prop_stable = mean(stable))
+})
+
+
+# Plot
+ggplot(results, aes(hunt_rate, prop_stable)) +
+  geom_line() +
+  geom_point() +
+  geom_hline(yintercept = 0.80, lty = 2, col = "red") + # If 80% of returns are stable, I'll consider it to be a safe hunting rate
+  labs(x = "Hunting Rate",
+       y = "Proportion of Stable Runs",
+       title = "Predator & Prey Stability Under Hunting Pressure",
+       caption = "Dashed line = 80% stability threshold.\nStability defined as prey > 50 and pred > 10 at year 50.") +
+  theme_minimal()
+```
+
+
+# Try again 
+```{r}
+# inital conditions
+inital_cond <- c(prey = 100, pred = 20)
+
+# time points
+tm <- seq(from = 1, to = 200) # for 200 days 
+
+# set parameters 
+pars <- c(rprey = 0.95, alpha = 0.01, eff = 0.6, pmort = 0.5, K = 2000, h_prey = 0.2)
+
+# run the model
+res <- ode(func = lotvmodk_hunt, y = inital_cond, times = tm, parms = pars)
+
+```
+
+```{r}
+# Look at the results 
+head(res)
+
+# Make results tidy data 
+res_df <- as.data.frame(res) %>% 
+  pivot_longer(-time, 
+               names_to = "animal", 
+               values_to = "pop")
+head(res_df)
+
+# Graph 
+ggplot(res_df, aes(time, pop, col = animal)) +
+  geom_line()
+
+ggplot(as.data.frame(res), aes(pred, prey, col = time)) + 
+  geom_point() +
+  labs(y = "Prey", x = "Predators")
+```
+
+The plots above shows the prey and predator populations oscillating overtime as parameters (including hunting) are held constant.
+
+
+## Run Sobol 
+To understand how population estimates vary with varying parameters. 
+
+**Generate Parameters**
+rprey=0.95, alpha=0.01, eff=0.6, pmort=0.4, K=2000 with a standard deivation of 10%. 
+```{r}
+np <- 200
+
+K <- rnorm(mean = 2000, sd = 200, n = np)
+rprey <- rnorm(mean = 0.95, sd = 0.095, n = np)
+alpha <- rnorm(mean = 0.01, sd = 0.001, n = np)
+eff <- rnorm(mean = 0.6, sd = 0.06, n = np)
+pmort <- rnorm(mean = 0.4, sd = 0.04, n = np)
+h_prey <- rnorm(mean = 0.3, sd = 0.03, n = np)
+
+x1 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort, h_prey = h_prey)
+
+# repeat to get our second set of samples
+K <- rnorm(mean = 2000, sd = 200, n = np)
+rprey <- rnorm(mean = 0.95, sd = 0.095, n = np)
+alpha <- rnorm(mean = 0.01, sd = 0.001, n = np)
+eff <- rnorm(mean = 0.6, sd = 0.06, n = np)
+pmort <- rnorm(mean = 0.4, sd = 0.04, n = np)
+h_prey <- rnorm(mean = 0.3, sd = 0.03, n = np)
+
+x2 <- cbind.data.frame(rprey = rprey, K = K, alpha = alpha, eff = eff, pmort = pmort, h_prey = h_prey)
+
+```
+
+**Create Sobol Object**
+```{r}
+# Create sobol object 
+sens_pp <- sobolSalt(model = NULL, x1, x2, nboot = 300)
+
+# Change column names 
+colnames(sens_pp$X) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+
+```
+
+**Create metric function**
+```{r}
+# Create a function to get max and min of 
+# compute_metrics <- function(result) {
+#   maxprey <- max(result$prey)
+#   maxpred <- max(result$pred)
+#   minprey <- min(result$prey)
+#   minpred <- min(result$pred)
+#   #prey_stable <- as.numeric(min(result$prey) > 0.1 * K) # 1 stable, 0 collapse 
+#   return(list(maxprey = maxprey, minprey = minprey, maxpred = maxpred, minpred = minpred)) #prey_stable = prey_stable))
+# }
+
+
+compute_metrics <- function(result) {
+ 
+  meanrprey <- mean(result$prey)
+  meanrpred <- mean(result$pred)
+
+  # return results
+  return(list(meanrprey = meanrprey, meanrpred = meanrpred))
+}
+  
+```
+
+Create wrapper function
+
+```{r}
+wrapper_func <- function(t, pop, rprey, alpha, eff, pmort, K, h_prey, func) {
+  parms <- list(rprey = rprey, alpha = alpha, eff = eff, pmort = pmort, K = K, h_prey = h_prey)
+  result <- ode(y = pop, times = t, func = func, parms = parms)
+  colnames(result) <- c("time", "prey", "pred")
+  # get metrics
+  metrics <- compute_metrics(as.data.frame(result))
+  return(metrics)
+}
+```
+
+Run Wrapper for all parameters
+
+```{r}
+# Set intital pop size and time (200 yrs)
+pop <- c(prey = 100, pred = 80)
+tm <- seq(from = 1, to = 200)
+
+# Run the model for all parameters 
+allresults <- as.data.frame(sens_pp$X) %>% 
+    pmap(wrapper_func, pop = pop, t = tm, func = lotvmodk_hunt)
+allresults
+
+# Results -> unlisted form
+#allres <- allresults %>% map_dfr(`[`, c("maxprey", "minprey", "maxpred", "minpred")) #"prey_stable"))
+allres <- allresults %>% map_dfr(`[`, c("meanrprey", "meanrpred")) #"prey_stable"))
+allres
+
+# Range of response across parameter uncertainity 
+allresl <- allres %>% gather(key = "metric", value = "pop")
+allresl
+
+
+# Create df with parameters and sobol results
+allresp_df <- as.data.frame(cbind(sens_pp$X, allres))
+allresp_df
+```
+
+Graphs
+
+```{r}
+ggplot(allresl, aes(metric, pop)) +
+  geom_boxplot()
+
+ggplot(allresl, aes(metric, pop, col = metric)) +
+  geom_boxplot() +
+  facet_wrap(~metric, scales = "free")
+
+ggplot(allresl, aes(pop, col = metric)) +
+  stat_ecdf(geom = "line") +
+  facet_wrap(~metric, scales = "free")
+
+```
+
+Sobol Indices
+
+```{r}
+# for minprey 
+#sens_PP_minprey <- sens_pp %>% sensitivity::tell(y = allres$minprey)
+sens_PP_minprey <- sens_pp %>% sensitivity::tell(y = allres$meanrprey)
+
+
+rownames(sens_PP_minprey$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+rownames(sens_PP_minprey$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+
+# for maxprey 
+#meanrpred
+sens_PP_maxprey <- sens_pp %>% sensitivity::tell(y = allres$meanrpred)
+# sens_PP_maxprey <- sens_pp %>% sensitivity::tell(y = allres$maxprey)
+rownames(sens_PP_maxprey$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+rownames(sens_PP_maxprey$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+
+# for minpred
+# sens_PP_minpred <- sens_pp %>% sensitivity::tell(y = allres$minpred)
+# rownames(sens_PP_minpred$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+# rownames(sens_PP_minpred$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+# 
+# # for maxpred
+# sens_PP_maxpred <- sens_pp %>% sensitivity::tell(y = allres$maxpred)
+# rownames(sens_PP_maxpred$S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+# rownames(sens_PP_maxpred$T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+
+```
+
+Put Sobol Indices together in one table
+
+```{r}
+# S Indices 
+sobol_S = as.data.frame(
+   rbind(
+    sens_PP_maxprey$S$original,
+    sens_PP_minprey$S$original,
+   #sens_PP_maxpred$S$original,
+    #sens_PP_minpred$S$original
+  ))
+colnames(sobol_S) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+rownames(sobol_S) <- c("maxprey", "minprey", "maxpred", "minpred")
+sobol_S
+
+# T Indices 
+sobol_T = as.data.frame(
+   rbind(
+    sens_PP_maxprey$T$original,
+    sens_PP_minprey$T$original,
+   sens_PP_maxpred$T$original,
+    sens_PP_minpred$T$original
+  ))
+colnames(sobol_T) <- c("rprey", "K", "alpha", "eff", "pmort", "h_prey")
+rownames(sobol_T) <- c("maxprey", "minprey", "maxpred", "minpred")
+sobol_T
+```
+
+The first order sensitivity results show vary different 
+The variance associated with variable interactions is mostly due to the growth rate of the prey population (`rprey`) and the interaction coefficient (`alpha`). Hunting rate was not the main cause of any of the output variances. 
+
+```{r}
+
+ggplot(allresp_df, aes(h_prey, minprey, col=pmort )) +
+  geom_point() +
+  theme_minimal()
+
+
+```
+
+
+The rate of maximum change of prey populations are most sensitive to the parameter `K` for the first order sensitivity indices. The rate of maximum change of prey populations are most sensitive to the parameter `rhunt` for the total sensitivity analysis. The rate of hunting is directly reducing the number of prey. The rate of maximum change of prey populations is secondly most sensitive to the `rprey` parameter in the first order indices. The rate of maximum change of prey populations is secondly most sensitive to the `pmort` parameter in the total order indices. This is the mortality rate of the predator population. 
+
+I chose to look at the mean rate of change of prey because these would show the average scenario for the populations of each animal. This is an important metric to give a realistic look at the populations of both animal groups. 
+
+
+
+
